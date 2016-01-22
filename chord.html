@@ -1,181 +1,9 @@
 
 <html>
 <head>
-  <title></title>
+  <title>Cash for Clunkers Chord</title>
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="//d3js.org/queue.v1.min.js"></script>
-<style>
-
-html {
-min-width: 1040px;
-}
- 
-body {
-background: #fcfcfa;
-color: #333;
-font-family: "PT Serif", serif;
-margin: 1em auto 4em auto;
-position: relative;
-width: 960px;
-}
- 
-header,
-footer,
-h1,
-h2,
-h3,
-h4,
-aside {
-color: #000;
-font-family: "PT Sans", sans-serif;
-}
- 
-h1 {
-font-size: 64px;
-font-weight: 300;
-letter-spacing: -2px;
-margin: .3em 0 .1em 0;
-}
- 
-h2 {
-margin-top: 2em;
-}
- 
-h1, h2 {
-text-rendering: optimizeLegibility;
-}
- 
-h2 a {
-color: #ccc;
-left: -20px;
-position: absolute;
-width: 740px;
-}
- 
-footer {
-font-size: small;
-margin-top: 8em;
-}
- 
-header aside {
-margin-top: 88px;
-}
- 
-header aside,
-footer aside {
-color: #636363;
-text-align: right;
-}
- 
-aside {
-font-size: small;
-right: 0;
-position: absolute;
-width: 180px;
-}
- 
-.attribution {
-font-size: small;
-margin-bottom: 2em;
-}
- 
-body > p, li > p {
-line-height: 1.5em;
-}
- 
-body > p {
-width: 720px;
-}
- 
-body > blockquote {
-width: 640px;
-}
- 
-blockquote q {
-display: block;
-font-style: oblique;
-}
- 
-li {
-width: 680px;
-}
- 
-a {
-color: steelblue;
-}
- 
-a:not(:hover) {
-text-decoration: none;
-}
- 
-pre, code, textarea {
-font-family: "Menlo", monospace;
-}
- 
-code {
-line-height: 1em;
-}
- 
-textarea {
-font-size: 100%;
-}
- 
-body > pre {
-border-left: solid 2px #ccc;
-padding-left: 18px;
-margin: 2em 0 2em -20px;
-}
-
- 
-svg {
-font: 10px sans-serif;
-}
- 
-.axis path, .axis line {
-fill: none;
-stroke: #000;
-shape-rendering: crispEdges;
-}
- 
-sup, sub {
-line-height: 0;
-}
- 
-q:before {
-content: "â€œ";
-}
- 
-q:after {
-content: "â€";
-}
- 
-blockquote:before {
-position: absolute;
-left: 2em;
-}
- 
-blockquote:after {
-position: absolute;
-} 
-#circle circle {
-fill: none;
-pointer-events: all;
-}
- 
-.group path {
-fill-opacity: .5;
-}
- 
-path.chord {
-stroke: #000;
-stroke-width: .25px;
-}
- 
-#circle:hover path.fade {
-display: none;
-}
- 
-</style>
 </head>
 <body>
 
@@ -183,12 +11,16 @@ display: none;
 </html>
 <script type="text/javascript">
 
-var c = d3.scale.category20();
+var c = function colores_google(n) {
+  var colores_g = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+  return colores_g[n % colores_g.length];
+}
 
-var width = 820,
-height = 820,
-outerRadius = Math.min(width, height) / 2 - 150,
-innerRadius = outerRadius - 24;
+
+var width = 960,
+  height = 500;
+outerRadius = Math.min(width, height)  - 320,
+innerRadius = outerRadius - 22;
  
 var indexByName = d3.map(),
     nameByIndex = d3.map(),
@@ -214,15 +46,14 @@ var svg = d3.select("body").append("svg")
 .attr("height", height)
 .append("g")
 .attr("id", "circle")
-.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+.attr("transform", "translate(" + width / 2 + "," + height / 2  + ")");
  
 svg.append("circle")
 .attr("r", outerRadius);
  
-d3.json("countries.json", function(cities) {
-d3.json("matrix.json", function(matrix) {
+d3.json("countries10.json", function(cities) {
+d3.json("matrix10.json", function(matrix) {
  
-console.log(cities)
 // Compute the chord layout.
 layout.matrix(matrix);
  
@@ -231,8 +62,12 @@ cities.forEach(function(d) {
     if (!indexByName.has(d = d.name)) {
       nameByIndex.set(n, d);
       indexByName.set(d, n++);
+    } else {
+      nameByIndex.set(indexByName.get(d) + cities.length/2, d);
+
     }
 });
+
 
 // Add a group per neighborhood.
 var group = svg.selectAll(".group")
@@ -260,7 +95,7 @@ group.append("text")
 var groupPath = group.append("path")
 .attr("id", function(d, i) { return "group" + i; })
 .attr("d", arc)
-.style("fill", function(d, i) { console.log(cities[i]); return c(+cities[i].color % 20); });
+.style("fill", function(d, i) { return d.index < cities.length / 2 ? '#444444' : c(+cities[i].color); });
  
  
 // Add the chords.
@@ -268,18 +103,9 @@ var chord = svg.selectAll(".chord")
 .data(layout.chords)
 .enter().append("path")
 .attr("class", "chord")
-.style("fill", function(d) { return c(+cities[d.source.index].color % 20); })
+.style("fill", function(d) { return c(+cities[d.target.index].color); })
 .attr("d", path);
  
-// Add an elaborate mouseover title for each chord.
- chord.append("title").text(function(d) {
- return cities[d.source.index].name
- + " → " + cities[d.target.index].name
- + ": " + formatPercent(d.source.value)
- + "\n" + cities[d.target.index].name
- + " → " + cities[d.source.index].name
- + ": " + formatPercent(d.target.value);
- });
  
 function mouseover(d, i) {
 chord.classed("fade", function(p) {
@@ -292,17 +118,46 @@ return p.source.index != i
  
 </script>
 
+<style>
 
-<!-- // Add a text label.
-var groupText = group.append("text")
-.attr("x", 6)
-.attr("dy", 15);
- 
-groupText.append("textPath")
-.attr("xlink:href", function(d, i) { return "#group" + i; })
-.text(function(d, i) { return cities[i].name; });
+body {
+background: #fcfcfa;
+color: #333;
+font-family: "PT Serif", serif;
+position: relative;
+width: 960px;
+}
  
 
-// Remove the labels that don't fit. :(
-groupText.filter(function(d, i) { return groupPath[0][i].getTotalLength() / 2 - 16 < this.getComputedTextLength(); })
-.remove(); -->
+ 
+svg {
+font: 10px sans-serif;
+}
+ 
+.axis path, .axis line {
+fill: none;
+stroke: #000;
+shape-rendering: crispEdges;
+}
+ 
+
+#circle circle {
+fill: none;
+pointer-events: all;
+}
+ 
+.group path {
+fill-opacity: 1;
+}
+ 
+path.chord {
+stroke-width: .25px;
+fill-opacity: 0.5;
+}
+ 
+#circle:hover path.fade {
+display: none;
+}
+ 
+</style>
+
