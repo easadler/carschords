@@ -1,0 +1,42 @@
+body {
+    background: #fcfcfa;
+    color: #333;
+    font-family: "PT Serif", serif;
+    position: relative;
+    width: 960px;
+}
+ 
+
+ 
+svg {
+    font: 10px sans-serif;
+}
+ 
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+ 
+
+#circle circle {
+    fill: none;
+    pointer-events: all;
+}
+ 
+.group path {
+    fill-opacity: 1;
+}
+ 
+path.chord {
+    stroke-width: .25px;
+    fill-opacity: 0.5;
+}
+ 
+#circle:hover path.fade {
+    display: none;
+}
+
+ 
+
+ 

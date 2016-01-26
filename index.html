@@ -1,0 +1,163 @@
+<html>
+<head>
+  <title>Cash for Clunkers Chord</title>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//d3js.org/queue.v1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+</body>
+</html>
+<script type="text/javascript">
+
+var c = function colores_google(n) {
+        "use strict";
+        var colores_g = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+        return colores_g[n % colores_g.length];
+    };
+
+// graph parameters
+var width = 960,
+    height = 500,
+    outerRadius = Math.min(width, height)  - 320,
+    innerRadius = outerRadius - 22;
+
+// data maps
+var indexByName = d3.map(),
+    nameByIndex = d3.map(),
+    matrix = [],
+    n = 0;
+
+// set up svg & chord diagram
+var arc = d3.svg.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+var layout = d3.layout.chord()
+    .padding(0.04)
+    .sortSubgroups(d3.descending)
+    .sortChords(d3.ascending);
+
+var path = d3.svg.chord()
+    .radius(innerRadius);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("id", "circle")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+svg.append("circle")
+    .attr("r", outerRadius);
+
+d3.json("countries.json", function (cities) {
+
+    d3.json("matrix.json", function (matrix) {
+
+        // Compute the chord layout.
+        layout.matrix(matrix);
+
+        cities.forEach(function (d) {
+            if (!indexByName.has(d = d.name)) {
+                nameByIndex.set(n, d);
+                indexByName.set(d, n++);
+            } else {
+                nameByIndex.set(indexByName.get(d) + cities.length / 2, d);
+            }
+        });
+
+        console.log(nameByIndex)
+
+
+        // Add a group per neighborhood.
+        var group = svg.selectAll(".group")
+            .data(layout.groups)
+            .enter().append("g")
+            .attr("class", "group")
+            .on("mouseover", mouseover);
+
+        group.append("text")
+            .each(function (d) { d.angle = (d.startAngle + d.endAngle) / 2; })
+            .attr("dy", ".35em")
+            .attr("transform", function (d) {
+                return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+                    + "translate(" + (innerRadius + 40) + ")"
+                    + (d.angle > Math.PI ? "rotate(180)" : "");
+            })
+            .style("text-anchor", function (d) { return d.angle > Math.PI ? "end" : null; })
+            .text(function (d) { return nameByIndex.get(d.index); });
+
+        // Add the group arc.
+        var groupPath = group.append("path")
+            .attr("id", function (d, i) { return "group" + i; })
+            .attr("d", arc)
+            .style("fill", function (d, i) {  return d.index < cities.length / 2 ? '#444444' : c(+cities[i].color); });
+
+        // Add the chords.
+        var chord = svg.selectAll(".chord")
+            .data(layout.chords)
+            .enter().append("path")
+            .attr("class", "chord")
+            .style("fill", function (d) { return c(+cities[d.target.index].color); })
+            .attr("d", path);
+
+
+        // Add legend
+        var legendRectSize = 12,
+            legendSpacing = 1;
+
+        var legend = svg.selectAll('.legend')
+            .data(cities.slice(cities.length/2, cities.length))
+            .enter()
+            .append('g')
+            .attr('class', 'legend')
+            .attr('transform', function (d, i) {
+                var height = legendRectSize,
+                    horz = -i * legendRectSize + 300,
+                    vert = height - 200;
+                return 'translate(' + horz + ',' + vert + ')';
+            });
+
+        legend.append('rect')
+            .attr('width', legendRectSize)
+            .attr('height', legendRectSize)
+            .style('fill', function (d) { return d.index < cities.length / 2 ? '#444444' : c(+d.color); })
+            .style('stroke', function (d) {  return d.index < cities.length / 2 ? '#444444' : c(+d.color); })
+            .style('opacity', 0.7);
+
+
+
+        legend.data(['clunkers', 'new vehicles']).append('text')
+            .attr('x', function (d, i) { return legendRectSize + 20 + 10 * i; })
+            .attr('y', function (d, i) {return 2 * i * legendRectSize + legendRectSize - 3; })
+            .text(function (d) {return d; })
+            .style('text-align', 'right');
+
+        legend.data(cities.slice(cities.length / 2, cities.length)).append('rect')
+            .attr('width', legendRectSize)
+            .attr('height', legendRectSize)
+            .attr('transform', function () {
+                var horz = 0,
+                    vert = 23;
+                return 'translate(' + horz + ',' + vert + ')';
+            })
+            .style('fill', '#444444')
+            .style('stroke', '#444444')
+            .style('opacity', 0.9)
+            .attr('class', 'test');
+
+
+
+
+        function mouseover(d, i) {
+            chord.classed("fade", function (p) {
+                return p.source.index !== i && p.target.index !== i;
+            });
+        }
+    });
+});
+ 
+</script>
+
